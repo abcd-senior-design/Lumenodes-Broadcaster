@@ -220,7 +220,6 @@ static void gap_params_init(void) {
   gap_conn_params.max_conn_interval = MAX_CONN_INTERVAL;
   gap_conn_params.slave_latency = SLAVE_LATENCY;
   gap_conn_params.conn_sup_timeout = CONN_SUP_TIMEOUT;
-
   err_code = sd_ble_gap_ppcp_set(&gap_conn_params);
   APP_ERROR_CHECK(err_code);
 }
@@ -559,7 +558,7 @@ static void advertising_init(void) {
   init.config.ble_adv_fast_interval = APP_ADV_INTERVAL;
   init.config.ble_adv_fast_timeout = APP_ADV_DURATION;
 
-  m_advertising.adv_params.channel_mask[4] = 0x60; // Only advertise on Channel 39
+//  m_advertising.adv_params.channel_mask[4] = 0x60; // Only advertise on Channel 39
 
   init.evt_handler = on_adv_evt;
 
@@ -841,7 +840,7 @@ static void cdc_acm_user_ev_handler(app_usbd_class_inst_t const *p_inst,
           {
              nrf_delay_ms(100);
           } else {
-             nrf_delay_ms(50);
+             nrf_delay_ms(100);
           }
           ret = app_usbd_cdc_acm_write(&m_app_cdc_acm, return_to_broadcast_station, 1);
         }
@@ -949,7 +948,9 @@ int main(void) {
   services_init();
   advertising_init();
   conn_params_init();
-
+  
+  ret =sd_ble_gap_tx_power_set(BLE_GAP_TX_POWER_ROLE_ADV, m_advertising.adv_handle, 8);
+  APP_ERROR_CHECK(ret);
   // Start execution.
   advertising_start();
 

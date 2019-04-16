@@ -66,7 +66,7 @@
   <Watches active="0" update="Never"/>
  </Watch4>
  <Files>
-  <SessionOpenFile windowGroup="DockEditLeft" x="38" y="839" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../main.c" selected="1" top="824" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="21" y="952" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../main.c" selected="1" top="924" codecName="Default"/>
   <SessionOpenFile windowGroup="DockEditLeft" x="0" y="766" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../../../../components/softdevice/s140/headers/ble_gap.h" selected="0" top="747" codecName="Default"/>
   <SessionOpenFile windowGroup="DockEditLeft" x="0" y="155" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../../../../components/ble/ble_advertising/ble_advertising.h" selected="0" top="136" codecName="Default"/>
  </Files>
