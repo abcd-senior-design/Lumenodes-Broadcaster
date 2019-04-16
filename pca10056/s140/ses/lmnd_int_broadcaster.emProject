@@ -1,6 +1,6 @@
 <!DOCTYPE CrossStudio_Project_File>
-<solution Name="usbd_ble_uart_pca10056_s140" target="8" version="2">
-  <project Name="usbd_ble_uart_pca10056_s140">
+<solution Name="lmnd_int_broadcaster_s140" target="8" version="2">
+  <project Name="lmnd_int_broadcaster_s140">
     <configuration
       Name="Common"
       arm_architecture="v7EM"
