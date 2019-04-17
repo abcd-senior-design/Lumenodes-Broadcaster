@@ -101,7 +101,7 @@ APP_TIMER_DEF(m_blink_cdc);
  * @param p_context LED to blink.
  */
 void blink_handler(void *p_context) {
-  bsp_board_led_invert((uint32_t)p_context);
+    bsp_board_led_invert((uint32_t)p_context);
 }
 
 #define ENDLINE_STRING ""
@@ -183,17 +183,17 @@ static char m_nus_data_array[BLE_NUS_MAX_DATA_LEN];
  * @param[in] p_file_name File name of the failing ASSERT call.
  */
 void assert_nrf_callback(uint16_t line_num, const uint8_t *p_file_name) {
-  app_error_handler(DEAD_BEEF, line_num, p_file_name);
+    app_error_handler(DEAD_BEEF, line_num, p_file_name);
 }
 
 /** @brief Function for initializing the timer module. */
 static void timers_init(void) {
-  ret_code_t err_code = app_timer_init();
-  APP_ERROR_CHECK(err_code);
-  err_code = app_timer_create(&m_blink_ble, APP_TIMER_MODE_REPEATED, blink_handler);
-  APP_ERROR_CHECK(err_code);
-  err_code = app_timer_create(&m_blink_cdc, APP_TIMER_MODE_REPEATED, blink_handler);
-  APP_ERROR_CHECK(err_code);
+    ret_code_t err_code = app_timer_init();
+    APP_ERROR_CHECK(err_code);
+    err_code = app_timer_create(&m_blink_ble, APP_TIMER_MODE_REPEATED, blink_handler);
+    APP_ERROR_CHECK(err_code);
+    err_code = app_timer_create(&m_blink_cdc, APP_TIMER_MODE_REPEATED, blink_handler);
+    APP_ERROR_CHECK(err_code);
 }
 
 /**
@@ -203,25 +203,25 @@ static void timers_init(void) {
  *          the device. It also sets the permissions and appearance.
  */
 static void gap_params_init(void) {
-  uint32_t err_code;
-  ble_gap_conn_params_t gap_conn_params;
-  ble_gap_conn_sec_mode_t sec_mode;
+    uint32_t err_code;
+    ble_gap_conn_params_t gap_conn_params;
+    ble_gap_conn_sec_mode_t sec_mode;
 
-  BLE_GAP_CONN_SEC_MODE_SET_OPEN(&sec_mode);
+    BLE_GAP_CONN_SEC_MODE_SET_OPEN(&sec_mode);
 
-  err_code = sd_ble_gap_device_name_set(&sec_mode,
-      (const uint8_t *)DEVICE_NAME,
-      strlen(DEVICE_NAME));
-  APP_ERROR_CHECK(err_code);
+    err_code = sd_ble_gap_device_name_set(&sec_mode,
+        (const uint8_t *)DEVICE_NAME,
+        strlen(DEVICE_NAME));
+    APP_ERROR_CHECK(err_code);
 
-  memset(&gap_conn_params, 0, sizeof(gap_conn_params));
+    memset(&gap_conn_params, 0, sizeof(gap_conn_params));
 
-  gap_conn_params.min_conn_interval = MIN_CONN_INTERVAL;
-  gap_conn_params.max_conn_interval = MAX_CONN_INTERVAL;
-  gap_conn_params.slave_latency = SLAVE_LATENCY;
-  gap_conn_params.conn_sup_timeout = CONN_SUP_TIMEOUT;
-  err_code = sd_ble_gap_ppcp_set(&gap_conn_params);
-  APP_ERROR_CHECK(err_code);
+    gap_conn_params.min_conn_interval = MIN_CONN_INTERVAL;
+    gap_conn_params.max_conn_interval = MAX_CONN_INTERVAL;
+    gap_conn_params.slave_latency = SLAVE_LATENCY;
+    gap_conn_params.conn_sup_timeout = CONN_SUP_TIMEOUT;
+    err_code = sd_ble_gap_ppcp_set(&gap_conn_params);
+    APP_ERROR_CHECK(err_code);
 }
 
 /**
@@ -234,40 +234,40 @@ static void gap_params_init(void) {
  */
 static void nus_data_handler(ble_nus_evt_t *p_evt) {
 
-  if (p_evt->type == BLE_NUS_EVT_RX_DATA) {
-    bsp_board_led_invert(LED_BLE_NUS_RX);
-    NRF_LOG_DEBUG("Received data from BLE NUS. Writing data on CDC ACM.");
-    NRF_LOG_HEXDUMP_DEBUG(p_evt->params.rx_data.p_data, p_evt->params.rx_data.length);
-    memcpy(m_nus_data_array, p_evt->params.rx_data.p_data, p_evt->params.rx_data.length);
+    if (p_evt->type == BLE_NUS_EVT_RX_DATA) {
+        bsp_board_led_invert(LED_BLE_NUS_RX);
+        NRF_LOG_DEBUG("Received data from BLE NUS. Writing data on CDC ACM.");
+        NRF_LOG_HEXDUMP_DEBUG(p_evt->params.rx_data.p_data, p_evt->params.rx_data.length);
+        memcpy(m_nus_data_array, p_evt->params.rx_data.p_data, p_evt->params.rx_data.length);
 
-    // Add endline characters
-    uint16_t length = p_evt->params.rx_data.length;
-    if (length + sizeof(ENDLINE_STRING) < BLE_NUS_MAX_DATA_LEN) {
-      memcpy(m_nus_data_array + length, ENDLINE_STRING, sizeof(ENDLINE_STRING));
-      length += sizeof(ENDLINE_STRING);
-    }
+        // Add endline characters
+        uint16_t length = p_evt->params.rx_data.length;
+        if (length + sizeof(ENDLINE_STRING) < BLE_NUS_MAX_DATA_LEN) {
+            memcpy(m_nus_data_array + length, ENDLINE_STRING, sizeof(ENDLINE_STRING));
+            length += sizeof(ENDLINE_STRING);
+        }
 
-    // Send data through CDC ACM
-    ret_code_t ret = app_usbd_cdc_acm_write(&m_app_cdc_acm,
-        m_nus_data_array,
-        length);
-    if (ret != NRF_SUCCESS) {
-      NRF_LOG_INFO("CDC ACM unavailable, data received: %s", m_nus_data_array);
+        // Send data through CDC ACM
+        ret_code_t ret = app_usbd_cdc_acm_write(&m_app_cdc_acm,
+            m_nus_data_array,
+            length);
+        if (ret != NRF_SUCCESS) {
+            NRF_LOG_INFO("CDC ACM unavailable, data received: %s", m_nus_data_array);
+        }
     }
-  }
 }
 
 /** @brief Function for initializing services that will be used by the application. */
 static void services_init(void) {
-  uint32_t err_code;
-  ble_nus_init_t nus_init;
+    uint32_t err_code;
+    ble_nus_init_t nus_init;
 
-  memset(&nus_init, 0, sizeof(nus_init));
+    memset(&nus_init, 0, sizeof(nus_init));
 
-  nus_init.data_handler = nus_data_handler;
+    nus_init.data_handler = nus_data_handler;
 
-  err_code = ble_nus_init(&m_nus, &nus_init);
-  APP_ERROR_CHECK(err_code);
+    err_code = ble_nus_init(&m_nus, &nus_init);
+    APP_ERROR_CHECK(err_code);
 }
 
 /**
@@ -276,27 +276,27 @@ static void services_init(void) {
  * @param[in] nrf_error  Error code containing information about what went wrong.
  */
 static void conn_params_error_handler(uint32_t nrf_error) {
-  APP_ERROR_HANDLER(nrf_error);
+    APP_ERROR_HANDLER(nrf_error);
 }
 
 /** @brief Function for initializing the Connection Parameters module. */
 static void conn_params_init(void) {
-  uint32_t err_code;
-  ble_conn_params_init_t cp_init;
+    uint32_t err_code;
+    ble_conn_params_init_t cp_init;
 
-  memset(&cp_init, 0, sizeof(cp_init));
+    memset(&cp_init, 0, sizeof(cp_init));
 
-  cp_init.p_conn_params = NULL;
-  cp_init.first_conn_params_update_delay = FIRST_CONN_PARAMS_UPDATE_DELAY;
-  cp_init.next_conn_params_update_delay = NEXT_CONN_PARAMS_UPDATE_DELAY;
-  cp_init.max_conn_params_update_count = MAX_CONN_PARAMS_UPDATE_COUNT;
-  cp_init.start_on_notify_cccd_handle = BLE_GATT_HANDLE_INVALID;
-  cp_init.disconnect_on_fail = true;
-  cp_init.evt_handler = NULL;
-  cp_init.error_handler = conn_params_error_handler;
+    cp_init.p_conn_params = NULL;
+    cp_init.first_conn_params_update_delay = FIRST_CONN_PARAMS_UPDATE_DELAY;
+    cp_init.next_conn_params_update_delay = NEXT_CONN_PARAMS_UPDATE_DELAY;
+    cp_init.max_conn_params_update_count = MAX_CONN_PARAMS_UPDATE_COUNT;
+    cp_init.start_on_notify_cccd_handle = BLE_GATT_HANDLE_INVALID;
+    cp_init.disconnect_on_fail = true;
+    cp_init.evt_handler = NULL;
+    cp_init.error_handler = conn_params_error_handler;
 
-  err_code = ble_conn_params_init(&cp_init);
-  APP_ERROR_CHECK(err_code);
+    err_code = ble_conn_params_init(&cp_init);
+    APP_ERROR_CHECK(err_code);
 }
 
 /**
@@ -305,22 +305,22 @@ static void conn_params_init(void) {
  * @note This function will not return.
  */
 static void sleep_mode_enter(void) {
-  uint32_t err_code = bsp_indication_set(BSP_INDICATE_IDLE);
-  APP_ERROR_CHECK(err_code);
+    uint32_t err_code = bsp_indication_set(BSP_INDICATE_IDLE);
+    APP_ERROR_CHECK(err_code);
 
-  // Prepare wakeup buttons.
-  err_code = bsp_btn_ble_sleep_mode_prepare();
-  APP_ERROR_CHECK(err_code);
+    // Prepare wakeup buttons.
+    err_code = bsp_btn_ble_sleep_mode_prepare();
+    APP_ERROR_CHECK(err_code);
 
-  // Go to system-off mode (this function will not return; wakeup will cause a reset).
-  err_code = sd_power_system_off();
-  APP_ERROR_CHECK(err_code);
+    // Go to system-off mode (this function will not return; wakeup will cause a reset).
+    err_code = sd_power_system_off();
+    APP_ERROR_CHECK(err_code);
 }
 
 /** @brief Function for starting advertising. */
 static void advertising_start(void) {
-  uint32_t err_code = ble_advertising_start(&m_advertising, BLE_ADV_MODE_FAST);
-  APP_ERROR_CHECK(err_code);
+    uint32_t err_code = ble_advertising_start(&m_advertising, BLE_ADV_MODE_FAST);
+    APP_ERROR_CHECK(err_code);
 }
 
 /**
@@ -331,22 +331,22 @@ static void advertising_start(void) {
  * @param[in] ble_adv_evt  Advertising event.
  */
 static void on_adv_evt(ble_adv_evt_t ble_adv_evt) {
-  uint32_t err_code;
+    uint32_t err_code;
 
-  switch (ble_adv_evt) {
-  case BLE_ADV_EVT_FAST:
-    err_code = app_timer_start(m_blink_ble,
-        APP_TIMER_TICKS(LED_BLINK_INTERVAL),
-        (void *)LED_BLE_NUS_CONN);
-    APP_ERROR_CHECK(err_code);
-    break;
-  case BLE_ADV_EVT_IDLE:
-    NRF_LOG_INFO("Advertising timeout, restarting.")
-    advertising_start();
-    break;
-  default:
-    break;
-  }
+    switch (ble_adv_evt) {
+    case BLE_ADV_EVT_FAST:
+        err_code = app_timer_start(m_blink_ble,
+            APP_TIMER_TICKS(LED_BLINK_INTERVAL),
+            (void *)LED_BLE_NUS_CONN);
+        APP_ERROR_CHECK(err_code);
+        break;
+    case BLE_ADV_EVT_IDLE:
+        NRF_LOG_INFO("Advertising timeout, restarting.")
+        advertising_start();
+        break;
+    default:
+        break;
+    }
 }
 
 /**
@@ -356,101 +356,101 @@ static void on_adv_evt(ble_adv_evt_t ble_adv_evt) {
  * @param[in]   p_context   Unused.
  */
 static void ble_evt_handler(ble_evt_t const *p_ble_evt, void *p_context) {
-  uint32_t err_code;
+    uint32_t err_code;
 
-  switch (p_ble_evt->header.evt_id) {
-  case BLE_GAP_EVT_CONNECTED:
-    NRF_LOG_INFO("BLE NUS connected");
-    err_code = app_timer_stop(m_blink_ble);
-    APP_ERROR_CHECK(err_code);
-    bsp_board_led_on(LED_BLE_NUS_CONN);
-    m_conn_handle = p_ble_evt->evt.gap_evt.conn_handle;
-    break;
-
-  case BLE_GAP_EVT_DISCONNECTED:
-    NRF_LOG_INFO("BLE NUS disconnected");
-    // LED indication will be changed when advertising starts.
-    m_conn_handle = BLE_CONN_HANDLE_INVALID;
-    break;
-
-  case BLE_GAP_EVT_PHY_UPDATE_REQUEST: {
-    NRF_LOG_DEBUG("PHY update request.");
-    ble_gap_phys_t const phys =
-        {
-            .rx_phys = BLE_GAP_PHY_AUTO,
-            .tx_phys = BLE_GAP_PHY_AUTO,
-        };
-    err_code = sd_ble_gap_phy_update(p_ble_evt->evt.gap_evt.conn_handle, &phys);
-    APP_ERROR_CHECK(err_code);
-  } break;
-
-  case BLE_GAP_EVT_SEC_PARAMS_REQUEST:
-    // Pairing not supported
-    err_code = sd_ble_gap_sec_params_reply(m_conn_handle, BLE_GAP_SEC_STATUS_PAIRING_NOT_SUPP, NULL, NULL);
-    APP_ERROR_CHECK(err_code);
-    break;
-
-  case BLE_GAP_EVT_DATA_LENGTH_UPDATE_REQUEST: {
-    ble_gap_data_length_params_t dl_params;
-
-    // Clearing the struct will effectivly set members to @ref BLE_GAP_DATA_LENGTH_AUTO
-    memset(&dl_params, 0, sizeof(ble_gap_data_length_params_t));
-    err_code = sd_ble_gap_data_length_update(p_ble_evt->evt.gap_evt.conn_handle, &dl_params, NULL);
-    APP_ERROR_CHECK(err_code);
-  } break;
-
-  case BLE_GATTS_EVT_SYS_ATTR_MISSING:
-    // No system attributes have been stored.
-    err_code = sd_ble_gatts_sys_attr_set(m_conn_handle, NULL, 0, 0);
-    APP_ERROR_CHECK(err_code);
-    break;
-
-  case BLE_GATTC_EVT_TIMEOUT:
-    // Disconnect on GATT Client timeout event.
-    err_code = sd_ble_gap_disconnect(p_ble_evt->evt.gattc_evt.conn_handle,
-        BLE_HCI_REMOTE_USER_TERMINATED_CONNECTION);
-    APP_ERROR_CHECK(err_code);
-    break;
-
-  case BLE_GATTS_EVT_TIMEOUT:
-    // Disconnect on GATT Server timeout event.
-    err_code = sd_ble_gap_disconnect(p_ble_evt->evt.gatts_evt.conn_handle,
-        BLE_HCI_REMOTE_USER_TERMINATED_CONNECTION);
-    APP_ERROR_CHECK(err_code);
-    break;
-
-  case BLE_EVT_USER_MEM_REQUEST:
-    err_code = sd_ble_user_mem_reply(p_ble_evt->evt.gattc_evt.conn_handle, NULL);
-    APP_ERROR_CHECK(err_code);
-    break;
-
-  case BLE_GATTS_EVT_RW_AUTHORIZE_REQUEST: {
-    ble_gatts_evt_rw_authorize_request_t req;
-    ble_gatts_rw_authorize_reply_params_t auth_reply;
-
-    req = p_ble_evt->evt.gatts_evt.params.authorize_request;
-
-    if (req.type != BLE_GATTS_AUTHORIZE_TYPE_INVALID) {
-      if ((req.request.write.op == BLE_GATTS_OP_PREP_WRITE_REQ) ||
-          (req.request.write.op == BLE_GATTS_OP_EXEC_WRITE_REQ_NOW) ||
-          (req.request.write.op == BLE_GATTS_OP_EXEC_WRITE_REQ_CANCEL)) {
-        if (req.type == BLE_GATTS_AUTHORIZE_TYPE_WRITE) {
-          auth_reply.type = BLE_GATTS_AUTHORIZE_TYPE_WRITE;
-        } else {
-          auth_reply.type = BLE_GATTS_AUTHORIZE_TYPE_READ;
-        }
-        auth_reply.params.write.gatt_status = APP_FEATURE_NOT_SUPPORTED;
-        err_code = sd_ble_gatts_rw_authorize_reply(p_ble_evt->evt.gatts_evt.conn_handle,
-            &auth_reply);
+    switch (p_ble_evt->header.evt_id) {
+    case BLE_GAP_EVT_CONNECTED:
+        NRF_LOG_INFO("BLE NUS connected");
+        err_code = app_timer_stop(m_blink_ble);
         APP_ERROR_CHECK(err_code);
-      }
-    }
-  } break; // BLE_GATTS_EVT_RW_AUTHORIZE_REQUEST
+        bsp_board_led_on(LED_BLE_NUS_CONN);
+        m_conn_handle = p_ble_evt->evt.gap_evt.conn_handle;
+        break;
 
-  default:
-    // No implementation needed.
-    break;
-  }
+    case BLE_GAP_EVT_DISCONNECTED:
+        NRF_LOG_INFO("BLE NUS disconnected");
+        // LED indication will be changed when advertising starts.
+        m_conn_handle = BLE_CONN_HANDLE_INVALID;
+        break;
+
+    case BLE_GAP_EVT_PHY_UPDATE_REQUEST: {
+        NRF_LOG_DEBUG("PHY update request.");
+        ble_gap_phys_t const phys =
+            {
+                .rx_phys = BLE_GAP_PHY_AUTO,
+                .tx_phys = BLE_GAP_PHY_AUTO,
+            };
+        err_code = sd_ble_gap_phy_update(p_ble_evt->evt.gap_evt.conn_handle, &phys);
+        APP_ERROR_CHECK(err_code);
+    } break;
+
+    case BLE_GAP_EVT_SEC_PARAMS_REQUEST:
+        // Pairing not supported
+        err_code = sd_ble_gap_sec_params_reply(m_conn_handle, BLE_GAP_SEC_STATUS_PAIRING_NOT_SUPP, NULL, NULL);
+        APP_ERROR_CHECK(err_code);
+        break;
+
+    case BLE_GAP_EVT_DATA_LENGTH_UPDATE_REQUEST: {
+        ble_gap_data_length_params_t dl_params;
+
+        // Clearing the struct will effectivly set members to @ref BLE_GAP_DATA_LENGTH_AUTO
+        memset(&dl_params, 0, sizeof(ble_gap_data_length_params_t));
+        err_code = sd_ble_gap_data_length_update(p_ble_evt->evt.gap_evt.conn_handle, &dl_params, NULL);
+        APP_ERROR_CHECK(err_code);
+    } break;
+
+    case BLE_GATTS_EVT_SYS_ATTR_MISSING:
+        // No system attributes have been stored.
+        err_code = sd_ble_gatts_sys_attr_set(m_conn_handle, NULL, 0, 0);
+        APP_ERROR_CHECK(err_code);
+        break;
+
+    case BLE_GATTC_EVT_TIMEOUT:
+        // Disconnect on GATT Client timeout event.
+        err_code = sd_ble_gap_disconnect(p_ble_evt->evt.gattc_evt.conn_handle,
+            BLE_HCI_REMOTE_USER_TERMINATED_CONNECTION);
+        APP_ERROR_CHECK(err_code);
+        break;
+
+    case BLE_GATTS_EVT_TIMEOUT:
+        // Disconnect on GATT Server timeout event.
+        err_code = sd_ble_gap_disconnect(p_ble_evt->evt.gatts_evt.conn_handle,
+            BLE_HCI_REMOTE_USER_TERMINATED_CONNECTION);
+        APP_ERROR_CHECK(err_code);
+        break;
+
+    case BLE_EVT_USER_MEM_REQUEST:
+        err_code = sd_ble_user_mem_reply(p_ble_evt->evt.gattc_evt.conn_handle, NULL);
+        APP_ERROR_CHECK(err_code);
+        break;
+
+    case BLE_GATTS_EVT_RW_AUTHORIZE_REQUEST: {
+        ble_gatts_evt_rw_authorize_request_t req;
+        ble_gatts_rw_authorize_reply_params_t auth_reply;
+
+        req = p_ble_evt->evt.gatts_evt.params.authorize_request;
+
+        if (req.type != BLE_GATTS_AUTHORIZE_TYPE_INVALID) {
+            if ((req.request.write.op == BLE_GATTS_OP_PREP_WRITE_REQ) ||
+                (req.request.write.op == BLE_GATTS_OP_EXEC_WRITE_REQ_NOW) ||
+                (req.request.write.op == BLE_GATTS_OP_EXEC_WRITE_REQ_CANCEL)) {
+                if (req.type == BLE_GATTS_AUTHORIZE_TYPE_WRITE) {
+                    auth_reply.type = BLE_GATTS_AUTHORIZE_TYPE_WRITE;
+                } else {
+                    auth_reply.type = BLE_GATTS_AUTHORIZE_TYPE_READ;
+                }
+                auth_reply.params.write.gatt_status = APP_FEATURE_NOT_SUPPORTED;
+                err_code = sd_ble_gatts_rw_authorize_reply(p_ble_evt->evt.gatts_evt.conn_handle,
+                    &auth_reply);
+                APP_ERROR_CHECK(err_code);
+            }
+        }
+    } break; // BLE_GATTS_EVT_RW_AUTHORIZE_REQUEST
+
+    default:
+        // No implementation needed.
+        break;
+    }
 }
 
 /**
@@ -459,45 +459,45 @@ static void ble_evt_handler(ble_evt_t const *p_ble_evt, void *p_context) {
  * @details This function initializes the SoftDevice and the BLE event interrupt.
  */
 static void ble_stack_init(void) {
-  ret_code_t err_code;
+    ret_code_t err_code;
 
-  err_code = nrf_sdh_enable_request();
-  APP_ERROR_CHECK(err_code);
+    err_code = nrf_sdh_enable_request();
+    APP_ERROR_CHECK(err_code);
 
-  // Configure the BLE stack using the default settings.
-  // Fetch the start address of the application RAM.
-  uint32_t ram_start = 0;
-  err_code = nrf_sdh_ble_default_cfg_set(APP_BLE_CONN_CFG_TAG, &ram_start);
-  APP_ERROR_CHECK(err_code);
+    // Configure the BLE stack using the default settings.
+    // Fetch the start address of the application RAM.
+    uint32_t ram_start = 0;
+    err_code = nrf_sdh_ble_default_cfg_set(APP_BLE_CONN_CFG_TAG, &ram_start);
+    APP_ERROR_CHECK(err_code);
 
-  // Enable BLE stack.
-  err_code = nrf_sdh_ble_enable(&ram_start);
-  APP_ERROR_CHECK(err_code);
+    // Enable BLE stack.
+    err_code = nrf_sdh_ble_enable(&ram_start);
+    APP_ERROR_CHECK(err_code);
 
-  // Register a handler for BLE events.
-  NRF_SDH_BLE_OBSERVER(m_ble_observer, APP_BLE_OBSERVER_PRIO, ble_evt_handler, NULL);
+    // Register a handler for BLE events.
+    NRF_SDH_BLE_OBSERVER(m_ble_observer, APP_BLE_OBSERVER_PRIO, ble_evt_handler, NULL);
 }
 
 /** @brief Function for handling events from the GATT library. */
 void gatt_evt_handler(nrf_ble_gatt_t *p_gatt, nrf_ble_gatt_evt_t const *p_evt) {
-  if ((m_conn_handle == p_evt->conn_handle) && (p_evt->evt_id == NRF_BLE_GATT_EVT_ATT_MTU_UPDATED)) {
-    m_ble_nus_max_data_len = p_evt->params.att_mtu_effective - OPCODE_LENGTH - HANDLE_LENGTH;
-    NRF_LOG_INFO("Data len is set to 0x%X(%d)", m_ble_nus_max_data_len, m_ble_nus_max_data_len);
-  }
-  NRF_LOG_DEBUG("ATT MTU exchange completed. central 0x%x peripheral 0x%x",
-      p_gatt->att_mtu_desired_central,
-      p_gatt->att_mtu_desired_periph);
+    if ((m_conn_handle == p_evt->conn_handle) && (p_evt->evt_id == NRF_BLE_GATT_EVT_ATT_MTU_UPDATED)) {
+        m_ble_nus_max_data_len = p_evt->params.att_mtu_effective - OPCODE_LENGTH - HANDLE_LENGTH;
+        NRF_LOG_INFO("Data len is set to 0x%X(%d)", m_ble_nus_max_data_len, m_ble_nus_max_data_len);
+    }
+    NRF_LOG_DEBUG("ATT MTU exchange completed. central 0x%x peripheral 0x%x",
+        p_gatt->att_mtu_desired_central,
+        p_gatt->att_mtu_desired_periph);
 }
 
 /** @brief Function for initializing the GATT library. */
 void gatt_init(void) {
-  ret_code_t err_code;
+    ret_code_t err_code;
 
-  err_code = nrf_ble_gatt_init(&m_gatt, gatt_evt_handler);
-  APP_ERROR_CHECK(err_code);
+    err_code = nrf_ble_gatt_init(&m_gatt, gatt_evt_handler);
+    APP_ERROR_CHECK(err_code);
 
-  err_code = nrf_ble_gatt_att_mtu_periph_set(&m_gatt, 64);
-  APP_ERROR_CHECK(err_code);
+    err_code = nrf_ble_gatt_att_mtu_periph_set(&m_gatt, 64);
+    APP_ERROR_CHECK(err_code);
 }
 
 /**
@@ -506,86 +506,86 @@ void gatt_init(void) {
  * @param[in]   event   Event generated by button press.
  */
 void bsp_event_handler(bsp_event_t event) {
-  uint32_t err_code;
-  switch (event) {
-  case BSP_EVENT_SLEEP:
-    sleep_mode_enter();
-    break;
+    uint32_t err_code;
+    switch (event) {
+    case BSP_EVENT_SLEEP:
+        sleep_mode_enter();
+        break;
 
-  case BSP_EVENT_DISCONNECT:
-    err_code = sd_ble_gap_disconnect(m_conn_handle, BLE_HCI_REMOTE_USER_TERMINATED_CONNECTION);
-    if (err_code != NRF_ERROR_INVALID_STATE) {
-      APP_ERROR_CHECK(err_code);
+    case BSP_EVENT_DISCONNECT:
+        err_code = sd_ble_gap_disconnect(m_conn_handle, BLE_HCI_REMOTE_USER_TERMINATED_CONNECTION);
+        if (err_code != NRF_ERROR_INVALID_STATE) {
+            APP_ERROR_CHECK(err_code);
+        }
+        break;
+
+    case BSP_EVENT_WHITELIST_OFF:
+        if (m_conn_handle == BLE_CONN_HANDLE_INVALID) {
+            err_code = ble_advertising_restart_without_whitelist(&m_advertising);
+            if (err_code != NRF_ERROR_INVALID_STATE) {
+                APP_ERROR_CHECK(err_code);
+            }
+        }
+        break;
+
+    default:
+        break;
     }
-    break;
-
-  case BSP_EVENT_WHITELIST_OFF:
-    if (m_conn_handle == BLE_CONN_HANDLE_INVALID) {
-      err_code = ble_advertising_restart_without_whitelist(&m_advertising);
-      if (err_code != NRF_ERROR_INVALID_STATE) {
-        APP_ERROR_CHECK(err_code);
-      }
-    }
-    break;
-
-  default:
-    break;
-  }
 }
 
 /** @brief Function for initializing the Advertising functionality. */
 static void advertising_init(void) {
-  uint32_t err_code;
-  ble_advertising_init_t init;
+    uint32_t err_code;
+    ble_advertising_init_t init;
 
-  memset(&init, 0, sizeof(init));
+    memset(&init, 0, sizeof(init));
 
-  ble_advdata_manuf_data_t manuf_data;    // Variable to hold manufacturer specific data
-  uint8_t data[] = "";                    //Our data to advertise
-  manuf_data.company_identifier = 0x0059; //Nordic's company ID
-  manuf_data.data.p_data = data;
-  manuf_data.data.size = sizeof(data);
-  init.advdata.p_manuf_specific_data = &manuf_data;
+    ble_advdata_manuf_data_t manuf_data;    // Variable to hold manufacturer specific data
+    uint8_t data[] = "";                    //Our data to advertise
+    manuf_data.company_identifier = 0x0059; //Nordic's company ID
+    manuf_data.data.p_data = data;
+    manuf_data.data.size = sizeof(data);
+    init.advdata.p_manuf_specific_data = &manuf_data;
 
-  init.advdata.name_type = BLE_ADVDATA_FULL_NAME;
-  init.advdata.include_appearance = false;
-  init.advdata.flags = BLE_GAP_ADV_FLAGS_LE_ONLY_LIMITED_DISC_MODE;
+    init.advdata.name_type = BLE_ADVDATA_FULL_NAME;
+    init.advdata.include_appearance = false;
+    init.advdata.flags = BLE_GAP_ADV_FLAGS_LE_ONLY_LIMITED_DISC_MODE;
 
-  init.srdata.uuids_complete.uuid_cnt = sizeof(m_adv_uuids) / sizeof(m_adv_uuids[0]);
-  init.srdata.uuids_complete.p_uuids = m_adv_uuids;
+    init.srdata.uuids_complete.uuid_cnt = sizeof(m_adv_uuids) / sizeof(m_adv_uuids[0]);
+    init.srdata.uuids_complete.p_uuids = m_adv_uuids;
 
-  init.config.ble_adv_fast_enabled = true;
-  init.config.ble_adv_fast_interval = APP_ADV_INTERVAL;
-  init.config.ble_adv_fast_timeout = APP_ADV_DURATION;
+    init.config.ble_adv_fast_enabled = true;
+    init.config.ble_adv_fast_interval = APP_ADV_INTERVAL;
+    init.config.ble_adv_fast_timeout = APP_ADV_DURATION;
 
-//  m_advertising.adv_params.channel_mask[4] = 0x60; // Only advertise on Channel 39
+    //  m_advertising.adv_params.channel_mask[4] = 0x60; // Only advertise on Channel 39
 
-  init.evt_handler = on_adv_evt;
+    init.evt_handler = on_adv_evt;
 
-  err_code = ble_advertising_init(&m_advertising, &init);
-  APP_ERROR_CHECK(err_code);
+    err_code = ble_advertising_init(&m_advertising, &init);
+    APP_ERROR_CHECK(err_code);
 
-  ble_advertising_conn_cfg_tag_set(&m_advertising, APP_BLE_CONN_CFG_TAG);
+    ble_advertising_conn_cfg_tag_set(&m_advertising, APP_BLE_CONN_CFG_TAG);
 }
 
 /** @brief Function for initializing buttons and leds. */
 static void buttons_leds_init(void) {
-  uint32_t err_code = bsp_init(BSP_INIT_LEDS, bsp_event_handler);
-  APP_ERROR_CHECK(err_code);
+    uint32_t err_code = bsp_init(BSP_INIT_LEDS, bsp_event_handler);
+    APP_ERROR_CHECK(err_code);
 }
 
 /** @brief Function for initializing the nrf log module. */
 static void log_init(void) {
-  ret_code_t err_code = NRF_LOG_INIT(NULL);
-  APP_ERROR_CHECK(err_code);
+    ret_code_t err_code = NRF_LOG_INIT(NULL);
+    APP_ERROR_CHECK(err_code);
 
-  NRF_LOG_DEFAULT_BACKENDS_INIT();
+    NRF_LOG_DEFAULT_BACKENDS_INIT();
 }
 
 /** @brief Function for placing the application in low power state while waiting for events. */
 static void power_manage(void) {
-  uint32_t err_code = sd_app_evt_wait();
-  APP_ERROR_CHECK(err_code);
+    uint32_t err_code = sd_app_evt_wait();
+    APP_ERROR_CHECK(err_code);
 }
 
 /**
@@ -594,8 +594,8 @@ static void power_manage(void) {
  * @details If there is no pending log operation, then sleep until next the next event occurs.
  */
 static void idle_state_handle(void) {
-  UNUSED_RETURN_VALUE(NRF_LOG_PROCESS());
-  power_manage();
+    UNUSED_RETURN_VALUE(NRF_LOG_PROCESS());
+    power_manage();
 }
 
 // USB CODE START
@@ -628,342 +628,378 @@ static uint8_t ble_data[7];
 static uint8_t PACK_ID[3];
 
 uint32_t crc32_compute(uint8_t const *p_data, uint32_t size, uint32_t const *p_crc) {
-  uint32_t crc;
+    uint32_t crc;
 
-  crc = (p_crc == NULL) ? 0xFFFFFFFF : ~(*p_crc);
-  for (uint32_t i = 0; i < size; i++) {
-    crc = crc ^ p_data[i];
-    for (uint32_t j = 8; j > 0; j--) {
-      crc = (crc >> 1) ^ (0xEDB88320U & ((crc & 1) ? 0xFFFFFFFF : 0));
+    crc = (p_crc == NULL) ? 0xFFFFFFFF : ~(*p_crc);
+    for (uint32_t i = 0; i < size; i++) {
+        crc = crc ^ p_data[i];
+        for (uint32_t j = 8; j > 0; j--) {
+            crc = (crc >> 1) ^ (0xEDB88320U & ((crc & 1) ? 0xFFFFFFFF : 0));
+        }
     }
-  }
-  return ~crc;
+    return ~crc;
 }
 
 /** @brief User event handler @ref app_usbd_cdc_acm_user_ev_handler_t */
 static void cdc_acm_user_ev_handler(app_usbd_class_inst_t const *p_inst,
     app_usbd_cdc_acm_user_event_t event) {
-  app_usbd_cdc_acm_t const *p_cdc_acm = app_usbd_cdc_acm_class_get(p_inst);
+    app_usbd_cdc_acm_t const *p_cdc_acm = app_usbd_cdc_acm_class_get(p_inst);
 
-  switch (event) {
-  case APP_USBD_CDC_ACM_USER_EVT_PORT_OPEN: {
-    /*Setup first transfer*/
-    ret_code_t ret = app_usbd_cdc_acm_read(&m_app_cdc_acm,
-        m_cdc_data_array,
-        1);
-    UNUSED_VARIABLE(ret);
-    ret = app_timer_stop(m_blink_cdc);
-    APP_ERROR_CHECK(ret);
-    bsp_board_led_on(LED_CDC_ACM_CONN);
-    NRF_LOG_INFO("CDC ACM port opened");
-    break;
-  }
-
-  case APP_USBD_CDC_ACM_USER_EVT_PORT_CLOSE:
-    NRF_LOG_INFO("CDC ACM port closed");
-    if (m_usb_connected) {
-      ret_code_t ret = app_timer_start(m_blink_cdc,
-          APP_TIMER_TICKS(LED_BLINK_INTERVAL),
-          (void *)LED_CDC_ACM_CONN);
-      APP_ERROR_CHECK(ret);
+    switch (event) {
+    case APP_USBD_CDC_ACM_USER_EVT_PORT_OPEN: {
+        /*Setup first transfer*/
+        ret_code_t ret = app_usbd_cdc_acm_read(&m_app_cdc_acm,
+            m_cdc_data_array,
+            1);
+        UNUSED_VARIABLE(ret);
+        ret = app_timer_stop(m_blink_cdc);
+        APP_ERROR_CHECK(ret);
+        bsp_board_led_on(LED_CDC_ACM_CONN);
+        NRF_LOG_INFO("CDC ACM port opened");
+        break;
     }
-    break;
 
-  case APP_USBD_CDC_ACM_USER_EVT_TX_DONE:
-    break;
-
-  case APP_USBD_CDC_ACM_USER_EVT_RX_DONE: {
-    ret_code_t ret;
-    ret_code_t err_code;
-    static uint8_t index = 0;
-    index++;
-
-    do {
-      if ((m_cdc_data_array[index - 1] == '\r') || (index >= (m_ble_nus_max_data_len))) {
-        bsp_board_led_invert(LED_CDC_ACM_RX);
-
-        //        NRF_LOG_INFO("BUFFER: 0x %x %x %x %x %x", m_cdc_data_array[0], m_cdc_data_array[1], m_cdc_data_array[2], m_cdc_data_array[3], m_cdc_data_array[4]);
-        //        NRF_LOG_INFO("BUFFER2: 0x %x %x %x %x %x", m_cdc_data_array[5], m_cdc_data_array[6], m_cdc_data_array[7], m_cdc_data_array[8], m_cdc_data_array[9]);
-        //                    NRF_LOG_HEXDUMP_DEBUG(m_cdc_data_array, index);
-
-        //        do {
-        uint16_t length = (uint16_t)index;
-        if (length + sizeof(ENDLINE_STRING) < BLE_NUS_MAX_DATA_LEN) {
-          memcpy(m_cdc_data_array + length, ENDLINE_STRING, sizeof(ENDLINE_STRING));
-          length += sizeof(ENDLINE_STRING);
+    case APP_USBD_CDC_ACM_USER_EVT_PORT_CLOSE:
+        NRF_LOG_INFO("CDC ACM port closed");
+        if (m_usb_connected) {
+            ret_code_t ret = app_timer_start(m_blink_cdc,
+                APP_TIMER_TICKS(LED_BLINK_INTERVAL),
+                (void *)LED_CDC_ACM_CONN);
+            APP_ERROR_CHECK(ret);
         }
+        break;
 
-        // FINDME
-        uint8_t isShouldBroadcast = 1;
-        uint8_t isShouldReturnToStation = 1;
-        uint8_t isHandshaking = 0;
-        uint8_t isShowtime = 0;
-        uint8_t isAssigningPacks = 0;
+    case APP_USBD_CDC_ACM_USER_EVT_TX_DONE:
+        break;
 
-        switch (m_cdc_data_array[0]) {
-        // HANDSHAKE
-        case 'L':
-          NRF_LOG_INFO("Handshaking with L, sending U");
-          return_to_broadcast_station[0] = 'U';
-          isHandshaking = 1;
-          break;
-        case 'M':
-          NRF_LOG_INFO("Handshaking with M, sending E");
-          return_to_broadcast_station[0] = 'E';
-          isHandshaking = 1;
-          break;
-        case 'N':
-          NRF_LOG_INFO("Handshaking with N, sending O");
-          return_to_broadcast_station[0] = 'O';
-          isHandshaking = 1;
-          break;
-        case 'D':
-          NRF_LOG_INFO("Handshaking with D, sending E");
-          return_to_broadcast_station[0] = 'E';
-          isHandshaking = 1;
-          break;
-        // Assigning PackID to Show Num
-        case 'P':
-          NRF_LOG_INFO("P: ASSIGN PACK ID TO SHOW NUM");
-          return_to_broadcast_station[0] = 'P';
-          ble_data[0] = 'P';
-          // Following 3 bytes are the hardware ID
-          ble_data[1] = m_cdc_data_array[1];
-          ble_data[2] = m_cdc_data_array[2];
-          ble_data[3] = m_cdc_data_array[3];
-          NRF_LOG_INFO("P: Pack ID: 0x%x%x%x", ble_data[1], ble_data[2], ble_data[3]);
-          // Following 2 bytes are the Show number
-          ble_data[4] = m_cdc_data_array[4];
-          ble_data[5] = m_cdc_data_array[5];
-          NRF_LOG_INFO("P: Show Num: 0x%x%x", ble_data[4], ble_data[5]);
-          isHandshaking = 0;
-          isAssigningPacks = 1;
-          break;
-        // The following set instructions will be for a given show
-        case 'S':
-          NRF_LOG_INFO("S: CHOOSE SHOW NUMBER");
-          return_to_broadcast_station[0] = 'S';
-          current_show_num[0] = m_cdc_data_array[1];
-          current_show_num[1] = m_cdc_data_array[2];
-          isShouldBroadcast = 0;
-          NRF_LOG_INFO("S: Show Num: 0x%x%x", current_show_num[0], current_show_num[1]);
-          isHandshaking = 0;
-          break;
-        case 'I':
-          NRF_LOG_INFO("I: SEND SET INSTRUCTION");
-          // Programmer is done sending instructions for this show
-
-          return_to_broadcast_station[0] = 'I';
-          ble_data[0] = 'I';
-          // Following 2 bytes are the Show number
-          ble_data[1] = current_show_num[0];
-          ble_data[2] = current_show_num[1];
-          NRF_LOG_INFO("I: Show Num: 0x%x%x", ble_data[1], ble_data[2]);
-          // Following 1 byte is the Set number
-          ble_data[3] = m_cdc_data_array[1];
-          NRF_LOG_INFO("I: Set Num: 0x%x", ble_data[3]);
-          // Following is RGB
-          ble_data[4] = m_cdc_data_array[2];
-          ble_data[5] = m_cdc_data_array[3];
-          ble_data[6] = m_cdc_data_array[4];
-          NRF_LOG_INFO("I: R: %d, G: %d, B: %d", ble_data[4], ble_data[5], ble_data[6]);
-          isHandshaking = 0;
-          break;
-        case 'B':
-          NRF_LOG_INFO("SHOWTIME");
-          return_to_broadcast_station[0] = 'B';
-          ble_data[0] = 'B';
-          // Following 1 byte is the Set number
-          ble_data[1] = m_cdc_data_array[1];
-          NRF_LOG_INFO("B: Set Num: 0x%x", ble_data[1]);
-          isHandshaking = 0;
-          isShowtime = 1;
-          break;
-        case 'F':
-          NRF_LOG_INFO("ALL DONE");
-          return_to_broadcast_station[0] = 'F';
-          ble_data[0] = 'S'; // Save
-          ble_data[1] = current_show_num[0];
-          ble_data[2] = current_show_num[1];
-          ble_data[3] = 0;
-          ble_data[4] = 0;
-          ble_data[5] = 0;
-          ble_data[6] = 0;
-          isHandshaking = 0;
-          break;
-        default:
-          // Don't send anything
-          isShouldReturnToStation = 0;
-          isShouldBroadcast = 0;
-          ble_data[0] = m_cdc_data_array[0];
-          ble_data[1] = m_cdc_data_array[1];
-          ble_data[2] = m_cdc_data_array[2];
-          ble_data[3] = m_cdc_data_array[3];
-          ble_data[4] = m_cdc_data_array[4];
-          ble_data[5] = m_cdc_data_array[5];
-          ble_data[6] = m_cdc_data_array[6];
-          isHandshaking = 0;
-          break;
-        }
-
-        if (isShouldBroadcast) {
-          ble_advdata_t mydata;
-          ble_advdata_manuf_data_t manuf_specific_data;
-
-          manuf_specific_data.data.p_data = ble_data;
-          manuf_specific_data.data.size = sizeof(ble_data);
-          manuf_specific_data.company_identifier = APP_COMPANY_IDENTIFIER; // company identifier is required
-
-          memset(&mydata, 0, sizeof(mydata));
-
-          mydata.flags = BLE_GAP_ADV_FLAGS_LE_ONLY_GENERAL_DISC_MODE;
-          mydata.p_manuf_specific_data = &manuf_specific_data;
-          mydata.name_type = BLE_ADVDATA_FULL_NAME;
-
-          m_adv_data.adv_data.p_data = (m_adv_data.adv_data.p_data == m_encoded_data[0])
-                                           ? m_encoded_data[1]
-                                           : m_encoded_data[0];
-
-          err_code = ble_advdata_encode(&mydata, m_adv_data.adv_data.p_data, &m_adv_data.adv_data.len);
-          APP_ERROR_CHECK(err_code);
-
-          err_code = sd_ble_gap_adv_set_configure(&(m_advertising.adv_handle), &m_adv_data, NULL);
-          APP_ERROR_CHECK(err_code);
-        }
-
-        if (isShouldReturnToStation) {
-          if (isHandshaking) {
-
-          } else if (isShowtime) {
-
-          } else if (isAssigningPacks)
-          {
-             nrf_delay_ms(100);
-          } else {
-             nrf_delay_ms(100);
-          }
-          ret = app_usbd_cdc_acm_write(&m_app_cdc_acm, return_to_broadcast_station, 1);
-        }
-
-        index = 0;
-      }
-
-      /*Get amount of data transfered*/
-      size_t size = app_usbd_cdc_acm_rx_size(p_cdc_acm);
-      NRF_LOG_DEBUG("RX: size: %lu char: %c", size, m_cdc_data_array[index - 1]);
-
-      /* Fetch data until internal buffer is empty */
-      ret = app_usbd_cdc_acm_read(&m_app_cdc_acm,
-          &m_cdc_data_array[index],
-          1);
-      if (ret == NRF_SUCCESS) {
+    case APP_USBD_CDC_ACM_USER_EVT_RX_DONE: {
+        ret_code_t ret;
+        ret_code_t err_code;
+        static uint8_t index = 0;
         index++;
-      }
-    } while (ret == NRF_SUCCESS);
 
-    break;
-  }
-  default:
-    break;
-  }
+        do {
+            if ((m_cdc_data_array[index - 1] == '\r') || (index >= (m_ble_nus_max_data_len))) {
+                bsp_board_led_invert(LED_CDC_ACM_RX);
+
+                //        NRF_LOG_INFO("BUFFER: 0x %x %x %x %x %x", m_cdc_data_array[0], m_cdc_data_array[1], m_cdc_data_array[2], m_cdc_data_array[3], m_cdc_data_array[4]);
+                //        NRF_LOG_INFO("BUFFER2: 0x %x %x %x %x %x", m_cdc_data_array[5], m_cdc_data_array[6], m_cdc_data_array[7], m_cdc_data_array[8], m_cdc_data_array[9]);
+                //                    NRF_LOG_HEXDUMP_DEBUG(m_cdc_data_array, index);
+
+                //        do {
+                uint16_t length = (uint16_t)index;
+                if (length + sizeof(ENDLINE_STRING) < BLE_NUS_MAX_DATA_LEN) {
+                    memcpy(m_cdc_data_array + length, ENDLINE_STRING, sizeof(ENDLINE_STRING));
+                    length += sizeof(ENDLINE_STRING);
+                }
+
+                // FINDME
+                uint8_t isShouldBroadcast = 1;
+                uint8_t isShouldReturnToStation = 1;
+                uint8_t isHandshaking = 0;
+                uint8_t isShowtime = 0;
+                uint8_t isAssigningPacks = 0;
+                uint8_t isSlowdownNeeded = 0;
+
+                switch (m_cdc_data_array[0]) {
+                // HANDSHAKE
+                case 'L':
+                    NRF_LOG_INFO("Handshaking with L, sending U");
+                    return_to_broadcast_station[0] = 'U';
+                    isHandshaking = 1;
+                    break;
+                case 'M':
+                    NRF_LOG_INFO("Handshaking with M, sending E");
+                    return_to_broadcast_station[0] = 'E';
+                    isHandshaking = 1;
+                    break;
+                case 'N':
+                    NRF_LOG_INFO("Handshaking with N, sending O");
+                    return_to_broadcast_station[0] = 'O';
+                    isHandshaking = 1;
+                    break;
+                case 'D':
+                    NRF_LOG_INFO("Handshaking with D, sending E");
+                    return_to_broadcast_station[0] = 'E';
+                    isHandshaking = 1;
+                    break;
+                // Assigning PackID to Show Num
+                case 'P':
+                    NRF_LOG_INFO("P: ASSIGN PACK ID TO SHOW NUM");
+                    return_to_broadcast_station[0] = 'P';
+                    ble_data[0] = 'P';
+
+                    // Emergency slowdown needed
+                    if (m_cdc_data_array[1] == 'E') {
+                        isSlowdownNeeded = 1;
+                        // Following 3 bytes are the hardware ID
+                        ble_data[1] = m_cdc_data_array[2];
+                        ble_data[2] = m_cdc_data_array[3];
+                        ble_data[3] = m_cdc_data_array[4];
+                        NRF_LOG_INFO("P: Pack ID: 0x%x%x%x", ble_data[1], ble_data[2], ble_data[3]);
+                        // Following 2 bytes are the Show number
+                        ble_data[4] = m_cdc_data_array[5];
+                        ble_data[5] = m_cdc_data_array[6];
+                        NRF_LOG_INFO("PE: Show Num: 0x%x%x", ble_data[4], ble_data[5]);
+                    } else {
+                        // Following 3 bytes are the hardware ID
+                        ble_data[1] = m_cdc_data_array[1];
+                        ble_data[2] = m_cdc_data_array[2];
+                        ble_data[3] = m_cdc_data_array[3];
+                        NRF_LOG_INFO("P: Pack ID: 0x%x%x%x", ble_data[1], ble_data[2], ble_data[3]);
+                        // Following 2 bytes are the Show number
+                        ble_data[4] = m_cdc_data_array[4];
+                        ble_data[5] = m_cdc_data_array[5];
+                        NRF_LOG_INFO("P: Show Num: 0x%x%x", ble_data[4], ble_data[5]);
+                    }
+
+                    isHandshaking = 0;
+                    isAssigningPacks = 1;
+                    break;
+                // The following set instructions will be for a given show
+                case 'S':
+                    NRF_LOG_INFO("S: CHOOSE SHOW NUMBER");
+                    return_to_broadcast_station[0] = 'S';
+                    current_show_num[0] = m_cdc_data_array[1];
+                    current_show_num[1] = m_cdc_data_array[2];
+                    isShouldBroadcast = 0;
+                    NRF_LOG_INFO("S: Show Num: 0x%x%x", current_show_num[0], current_show_num[1]);
+                    isHandshaking = 0;
+                    break;
+                case 'I':
+                    NRF_LOG_INFO("I: SEND SET INSTRUCTION");
+                    // Programmer is done sending instructions for this show
+
+                    return_to_broadcast_station[0] = 'I';
+                    ble_data[0] = 'I';
+
+                    // Emergency slowdown requested
+                    if (m_cdc_data_array[1] == 'E') {
+                        isSlowdownNeeded = 1;
+                        // Following 2 bytes are the Show number
+                        ble_data[1] = current_show_num[0];
+                        ble_data[2] = current_show_num[1];
+                        NRF_LOG_INFO("I: Show Num: 0x%x%x", ble_data[1], ble_data[2]);
+                        // Following 1 byte is the Set number
+                        ble_data[3] = m_cdc_data_array[2];
+                        NRF_LOG_INFO("I: Set Num: 0x%x", ble_data[3]);
+                        // Following is RGB
+                        ble_data[4] = m_cdc_data_array[3];
+                        ble_data[5] = m_cdc_data_array[4];
+                        ble_data[6] = m_cdc_data_array[5];
+                        NRF_LOG_INFO("IE: R: %d, G: %d, B: %d", ble_data[4], ble_data[5], ble_data[6]);
+                    } else {
+                        // Following 2 bytes are the Show number
+                        ble_data[1] = current_show_num[0];
+                        ble_data[2] = current_show_num[1];
+                        NRF_LOG_INFO("I: Show Num: 0x%x%x", ble_data[1], ble_data[2]);
+                        // Following 1 byte is the Set number
+                        ble_data[3] = m_cdc_data_array[1];
+                        NRF_LOG_INFO("I: Set Num: 0x%x", ble_data[3]);
+                        // Following is RGB
+                        ble_data[4] = m_cdc_data_array[2];
+                        ble_data[5] = m_cdc_data_array[3];
+                        ble_data[6] = m_cdc_data_array[4];
+                        NRF_LOG_INFO("I: R: %d, G: %d, B: %d", ble_data[4], ble_data[5], ble_data[6]);
+                    }
+                    isHandshaking = 0;
+                    break;
+                case 'B':
+                    NRF_LOG_INFO("SHOWTIME");
+                    return_to_broadcast_station[0] = 'B';
+                    ble_data[0] = 'B';
+                    // Following 1 byte is the Set number
+                    ble_data[1] = m_cdc_data_array[1];
+                    NRF_LOG_INFO("B: Set Num: 0x%x", ble_data[1]);
+                    isHandshaking = 0;
+                    isShowtime = 1;
+                    break;
+                case 'F':
+                    NRF_LOG_INFO("ALL DONE");
+                    return_to_broadcast_station[0] = 'F';
+                    ble_data[0] = 'S'; // Save
+                    ble_data[1] = current_show_num[0];
+                    ble_data[2] = current_show_num[1];
+                    ble_data[3] = 0;
+                    ble_data[4] = 0;
+                    ble_data[5] = 0;
+                    ble_data[6] = 0;
+                    isHandshaking = 0;
+                    break;
+                default:
+                    // Don't send anything
+                    isShouldReturnToStation = 0;
+                    isShouldBroadcast = 0;
+                    ble_data[0] = m_cdc_data_array[0];
+                    ble_data[1] = m_cdc_data_array[1];
+                    ble_data[2] = m_cdc_data_array[2];
+                    ble_data[3] = m_cdc_data_array[3];
+                    ble_data[4] = m_cdc_data_array[4];
+                    ble_data[5] = m_cdc_data_array[5];
+                    ble_data[6] = m_cdc_data_array[6];
+                    isHandshaking = 0;
+                    break;
+                }
+
+                if (isShouldBroadcast) {
+                    ble_advdata_t mydata;
+                    ble_advdata_manuf_data_t manuf_specific_data;
+
+                    manuf_specific_data.data.p_data = ble_data;
+                    manuf_specific_data.data.size = sizeof(ble_data);
+                    manuf_specific_data.company_identifier = APP_COMPANY_IDENTIFIER; // company identifier is required
+
+                    memset(&mydata, 0, sizeof(mydata));
+
+                    mydata.flags = BLE_GAP_ADV_FLAGS_LE_ONLY_GENERAL_DISC_MODE;
+                    mydata.p_manuf_specific_data = &manuf_specific_data;
+                    mydata.name_type = BLE_ADVDATA_FULL_NAME;
+
+                    m_adv_data.adv_data.p_data = (m_adv_data.adv_data.p_data == m_encoded_data[0])
+                                                     ? m_encoded_data[1]
+                                                     : m_encoded_data[0];
+
+                    err_code = ble_advdata_encode(&mydata, m_adv_data.adv_data.p_data, &m_adv_data.adv_data.len);
+                    APP_ERROR_CHECK(err_code);
+
+                    err_code = sd_ble_gap_adv_set_configure(&(m_advertising.adv_handle), &m_adv_data, NULL);
+                    APP_ERROR_CHECK(err_code);
+                }
+
+                if (isShouldReturnToStation) {
+                    if (isHandshaking) {
+
+                    } else if (isShowtime) {
+
+                    } else if (isSlowdownNeeded) {
+                        nrf_delay_ms(500);
+                    } else if (isAssigningPacks){
+                        nrf_delay_ms(100);
+                    } else {
+                        nrf_delay_ms(100);
+                    }
+                    ret = app_usbd_cdc_acm_write(&m_app_cdc_acm, return_to_broadcast_station, 1);
+                }
+
+                index = 0;
+            }
+
+            /*Get amount of data transfered*/
+            size_t size = app_usbd_cdc_acm_rx_size(p_cdc_acm);
+            NRF_LOG_DEBUG("RX: size: %lu char: %c", size, m_cdc_data_array[index - 1]);
+
+            /* Fetch data until internal buffer is empty */
+            ret = app_usbd_cdc_acm_read(&m_app_cdc_acm,
+                &m_cdc_data_array[index],
+                1);
+            if (ret == NRF_SUCCESS) {
+                index++;
+            }
+        } while (ret == NRF_SUCCESS);
+
+        break;
+    }
+    default:
+        break;
+    }
 }
 
 static void usbd_user_ev_handler(app_usbd_event_type_t event) {
-  switch (event) {
-  case APP_USBD_EVT_DRV_SUSPEND:
-    break;
+    switch (event) {
+    case APP_USBD_EVT_DRV_SUSPEND:
+        break;
 
-  case APP_USBD_EVT_DRV_RESUME:
-    break;
+    case APP_USBD_EVT_DRV_RESUME:
+        break;
 
-  case APP_USBD_EVT_STARTED:
-    break;
+    case APP_USBD_EVT_STARTED:
+        break;
 
-  case APP_USBD_EVT_STOPPED:
-    app_usbd_disable();
-    break;
+    case APP_USBD_EVT_STOPPED:
+        app_usbd_disable();
+        break;
 
-  case APP_USBD_EVT_POWER_DETECTED:
-    NRF_LOG_INFO("USB power detected");
+    case APP_USBD_EVT_POWER_DETECTED:
+        NRF_LOG_INFO("USB power detected");
 
-    if (!nrf_drv_usbd_is_enabled()) {
-      app_usbd_enable();
+        if (!nrf_drv_usbd_is_enabled()) {
+            app_usbd_enable();
+        }
+        break;
+
+    case APP_USBD_EVT_POWER_REMOVED: {
+        NRF_LOG_INFO("USB power removed");
+        ret_code_t err_code = app_timer_stop(m_blink_cdc);
+        APP_ERROR_CHECK(err_code);
+        bsp_board_led_off(LED_CDC_ACM_CONN);
+        m_usb_connected = false;
+        app_usbd_stop();
+    } break;
+
+    case APP_USBD_EVT_POWER_READY: {
+        NRF_LOG_INFO("USB ready");
+        ret_code_t err_code = app_timer_start(m_blink_cdc,
+            APP_TIMER_TICKS(LED_BLINK_INTERVAL),
+            (void *)LED_CDC_ACM_CONN);
+        APP_ERROR_CHECK(err_code);
+        m_usb_connected = true;
+        app_usbd_start();
+    } break;
+
+    default:
+        break;
     }
-    break;
-
-  case APP_USBD_EVT_POWER_REMOVED: {
-    NRF_LOG_INFO("USB power removed");
-    ret_code_t err_code = app_timer_stop(m_blink_cdc);
-    APP_ERROR_CHECK(err_code);
-    bsp_board_led_off(LED_CDC_ACM_CONN);
-    m_usb_connected = false;
-    app_usbd_stop();
-  } break;
-
-  case APP_USBD_EVT_POWER_READY: {
-    NRF_LOG_INFO("USB ready");
-    ret_code_t err_code = app_timer_start(m_blink_cdc,
-        APP_TIMER_TICKS(LED_BLINK_INTERVAL),
-        (void *)LED_CDC_ACM_CONN);
-    APP_ERROR_CHECK(err_code);
-    m_usb_connected = true;
-    app_usbd_start();
-  } break;
-
-  default:
-    break;
-  }
 }
 
 // USB CODE END
 
 /** @brief Application main function. */
 int main(void) {
-  ret_code_t ret;
-  static const app_usbd_config_t usbd_config = {
-      .ev_state_proc = usbd_user_ev_handler};
-  // Initialize.
-  log_init();
-  timers_init();
+    ret_code_t ret;
+    static const app_usbd_config_t usbd_config = {
+        .ev_state_proc = usbd_user_ev_handler};
+    // Initialize.
+    log_init();
+    timers_init();
 
-  buttons_leds_init();
+    buttons_leds_init();
 
-  app_usbd_serial_num_generate();
+    app_usbd_serial_num_generate();
 
-  ret = nrf_drv_clock_init();
-  APP_ERROR_CHECK(ret);
+    ret = nrf_drv_clock_init();
+    APP_ERROR_CHECK(ret);
 
-  NRF_LOG_INFO("USBD BLE UART example started.");
+    NRF_LOG_INFO("USBD BLE UART example started.");
 
-  ret = app_usbd_init(&usbd_config);
-  APP_ERROR_CHECK(ret);
+    ret = app_usbd_init(&usbd_config);
+    APP_ERROR_CHECK(ret);
 
-  app_usbd_class_inst_t const *class_cdc_acm = app_usbd_cdc_acm_class_inst_get(&m_app_cdc_acm);
-  ret = app_usbd_class_append(class_cdc_acm);
-  APP_ERROR_CHECK(ret);
+    app_usbd_class_inst_t const *class_cdc_acm = app_usbd_cdc_acm_class_inst_get(&m_app_cdc_acm);
+    ret = app_usbd_class_append(class_cdc_acm);
+    APP_ERROR_CHECK(ret);
 
-  ble_stack_init();
-  gap_params_init();
-  gatt_init();
-  services_init();
-  advertising_init();
-  conn_params_init();
-  
-  ret =sd_ble_gap_tx_power_set(BLE_GAP_TX_POWER_ROLE_ADV, m_advertising.adv_handle, 8);
-  APP_ERROR_CHECK(ret);
-  // Start execution.
-  advertising_start();
+    ble_stack_init();
+    gap_params_init();
+    gatt_init();
+    services_init();
+    advertising_init();
+    conn_params_init();
 
-  ret = app_usbd_power_events_enable();
-  APP_ERROR_CHECK(ret);
+    ret = sd_ble_gap_tx_power_set(BLE_GAP_TX_POWER_ROLE_ADV, m_advertising.adv_handle, 8);
+    APP_ERROR_CHECK(ret);
+    // Start execution.
+    advertising_start();
 
-  // Enter main loop.
-  for (;;) {
-    while (app_usbd_event_queue_process()) {
-      /* Nothing to do */
+    ret = app_usbd_power_events_enable();
+    APP_ERROR_CHECK(ret);
+
+    // Enter main loop.
+    for (;;) {
+        while (app_usbd_event_queue_process()) {
+            /* Nothing to do */
+        }
+        idle_state_handle();
     }
-    idle_state_handle();
-  }
 }
 
 /**
