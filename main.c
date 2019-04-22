@@ -640,6 +640,15 @@ uint32_t crc32_compute(uint8_t const *p_data, uint32_t size, uint32_t const *p_c
     return ~crc;
 }
 
+char byteCrFixer(char input)
+{
+  if (13 < input)
+  {
+    return (input-1);
+  }
+  return input;
+}
+
 /** @brief User event handler @ref app_usbd_cdc_acm_user_ev_handler_t */
 static void cdc_acm_user_ev_handler(app_usbd_class_inst_t const *p_inst,
     app_usbd_cdc_acm_user_event_t event) {
@@ -729,34 +738,52 @@ static void cdc_acm_user_ev_handler(app_usbd_class_inst_t const *p_inst,
                     return_to_broadcast_station[0] = 'P';
                     ble_data[0] = 'P';
 
-                    // Emergency slowdown needed
-                    if (m_cdc_data_array[1] == 'E') {
-                        isSlowdownNeeded = 1;
-                        // Following 3 bytes are the hardware ID
-                        ble_data[1] = m_cdc_data_array[2];
-                        ble_data[2] = m_cdc_data_array[3];
-                        ble_data[3] = m_cdc_data_array[4];
-                        NRF_LOG_INFO("P: Pack ID: 0x%x%x%x", ble_data[1], ble_data[2], ble_data[3]);
-                        // Following 2 bytes are the Show number
-                        ble_data[4] = m_cdc_data_array[5];
-                        ble_data[5] = m_cdc_data_array[6];
-                        NRF_LOG_INFO("PE: Show Num: 0x%x%x", ble_data[4], ble_data[5]);
-                    } else {
-                        // Following 3 bytes are the hardware ID
-                        ble_data[1] = m_cdc_data_array[1];
-                        ble_data[2] = m_cdc_data_array[2];
-                        ble_data[3] = m_cdc_data_array[3];
-                        NRF_LOG_INFO("P: Pack ID: 0x%x%x%x", ble_data[1], ble_data[2], ble_data[3]);
-                        // Following 2 bytes are the Show number
-                        ble_data[4] = m_cdc_data_array[4];
-                        ble_data[5] = m_cdc_data_array[5];
-                        NRF_LOG_INFO("P: Show Num: 0x%x%x", ble_data[4], ble_data[5]);
-                    }
+                    // Following 3 bytes are the hardware ID
+                    ble_data[1] = byteCrFixer(m_cdc_data_array[1]);
+                    ble_data[2] = byteCrFixer(m_cdc_data_array[2]);
+                    ble_data[3] = byteCrFixer(m_cdc_data_array[3]);
+                    NRF_LOG_INFO("P: Pack ID: 0x%x%x%x", ble_data[1], ble_data[2], ble_data[3]);
+                    // Following 2 bytes are the Show number
+                    ble_data[4] = m_cdc_data_array[4];
+                    ble_data[5] = m_cdc_data_array[5];
+                    NRF_LOG_INFO("P: Show Num: 0x%x%x", ble_data[4], ble_data[5]);
 
                     isHandshaking = 0;
                     isAssigningPacks = 1;
                     break;
                 // The following set instructions will be for a given show
+                case 'E':
+                    NRF_LOG_INFO("E: SLOW PROGRAM SOMETHING");
+                    isSlowdownNeeded = 1;
+                    if (m_cdc_data_array[1] == 'I') { 
+                        return_to_broadcast_station[0] = 'I';
+                        ble_data[0] = 'I';
+                        // Following 2 bytes are the Show number
+                        ble_data[1] = current_show_num[0];
+                        ble_data[2] = current_show_num[1];
+                        NRF_LOG_INFO("I: Show Num: 0x%x%x", ble_data[1], ble_data[2]);
+                        // Following 1 byte is the Set number
+                        ble_data[3] = byteCrFixer(m_cdc_data_array[2]);
+                        NRF_LOG_INFO("I: Set Num: 0x%x", ble_data[3]);
+                        // Following is RGB
+                        ble_data[4] = m_cdc_data_array[3];
+                        ble_data[5] = m_cdc_data_array[4];
+                        ble_data[6] = m_cdc_data_array[5];
+                        NRF_LOG_INFO("IE: R: %d, G: %d, B: %d", ble_data[4], ble_data[5], ble_data[6]);
+                    } else if (m_cdc_data_array[1] == 'P') {
+                        return_to_broadcast_station[0] = 'P';
+                        ble_data[0] = 'P';
+                        // Following 3 bytes are the hardware ID
+                        ble_data[1] = byteCrFixer(m_cdc_data_array[2]);
+                        ble_data[2] = byteCrFixer(m_cdc_data_array[3]);
+                        ble_data[3] = byteCrFixer(m_cdc_data_array[4]);
+                        NRF_LOG_INFO("P: Pack ID: 0x%x%x%x", ble_data[1], ble_data[2], ble_data[3]);
+                        // Following 2 bytes are the Show number
+                        ble_data[4] = m_cdc_data_array[5];
+                        ble_data[5] = m_cdc_data_array[6];
+                        NRF_LOG_INFO("PE: Show Num: 0x%x%x", ble_data[4], ble_data[5]);
+                    }
+                    break;
                 case 'S':
                     NRF_LOG_INFO("S: CHOOSE SHOW NUMBER");
                     return_to_broadcast_station[0] = 'S';
@@ -773,35 +800,19 @@ static void cdc_acm_user_ev_handler(app_usbd_class_inst_t const *p_inst,
                     return_to_broadcast_station[0] = 'I';
                     ble_data[0] = 'I';
 
-                    // Emergency slowdown requested
-                    if (m_cdc_data_array[1] == 'E') {
-                        isSlowdownNeeded = 1;
-                        // Following 2 bytes are the Show number
-                        ble_data[1] = current_show_num[0];
-                        ble_data[2] = current_show_num[1];
-                        NRF_LOG_INFO("I: Show Num: 0x%x%x", ble_data[1], ble_data[2]);
-                        // Following 1 byte is the Set number
-                        ble_data[3] = m_cdc_data_array[2];
-                        NRF_LOG_INFO("I: Set Num: 0x%x", ble_data[3]);
-                        // Following is RGB
-                        ble_data[4] = m_cdc_data_array[3];
-                        ble_data[5] = m_cdc_data_array[4];
-                        ble_data[6] = m_cdc_data_array[5];
-                        NRF_LOG_INFO("IE: R: %d, G: %d, B: %d", ble_data[4], ble_data[5], ble_data[6]);
-                    } else {
-                        // Following 2 bytes are the Show number
-                        ble_data[1] = current_show_num[0];
-                        ble_data[2] = current_show_num[1];
-                        NRF_LOG_INFO("I: Show Num: 0x%x%x", ble_data[1], ble_data[2]);
-                        // Following 1 byte is the Set number
-                        ble_data[3] = m_cdc_data_array[1];
-                        NRF_LOG_INFO("I: Set Num: 0x%x", ble_data[3]);
-                        // Following is RGB
-                        ble_data[4] = m_cdc_data_array[2];
-                        ble_data[5] = m_cdc_data_array[3];
-                        ble_data[6] = m_cdc_data_array[4];
-                        NRF_LOG_INFO("I: R: %d, G: %d, B: %d", ble_data[4], ble_data[5], ble_data[6]);
-                    }
+                    // Following 2 bytes are the Show number
+                    ble_data[1] = current_show_num[0];
+                    ble_data[2] = current_show_num[1];
+                    NRF_LOG_INFO("I: Show Num: 0x%x%x", ble_data[1], ble_data[2]);
+                    // Following 1 byte is the Set number
+                    ble_data[3] = byteCrFixer(m_cdc_data_array[1]);
+                    NRF_LOG_INFO("I: Set Num: 0x%x", ble_data[3]);
+                    // Following is RGB
+                    ble_data[4] = m_cdc_data_array[2];
+                    ble_data[5] = m_cdc_data_array[3];
+                    ble_data[6] = m_cdc_data_array[4];
+                    NRF_LOG_INFO("I: R: %d, G: %d, B: %d", ble_data[4], ble_data[5], ble_data[6]);
+
                     isHandshaking = 0;
                     break;
                 case 'B':
@@ -809,7 +820,8 @@ static void cdc_acm_user_ev_handler(app_usbd_class_inst_t const *p_inst,
                     return_to_broadcast_station[0] = 'B';
                     ble_data[0] = 'B';
                     // Following 1 byte is the Set number
-                    ble_data[1] = m_cdc_data_array[1];
+                    ble_data[1] = byteCrFixer(m_cdc_data_array[1]);
+                    
                     NRF_LOG_INFO("B: Set Num: 0x%x", ble_data[1]);
                     isHandshaking = 0;
                     isShowtime = 1;
@@ -873,10 +885,10 @@ static void cdc_acm_user_ev_handler(app_usbd_class_inst_t const *p_inst,
 
                     } else if (isSlowdownNeeded) {
                         nrf_delay_ms(500);
-                    } else if (isAssigningPacks){
-                        nrf_delay_ms(100);
+                    } else if (isAssigningPacks) {
+                        nrf_delay_ms(200);
                     } else {
-                        nrf_delay_ms(100);
+                        nrf_delay_ms(200);
                     }
                     ret = app_usbd_cdc_acm_write(&m_app_cdc_acm, return_to_broadcast_station, 1);
                 }
